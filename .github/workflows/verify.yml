@@ -1,0 +1,38 @@
+name: Nichegames creator social verification
+run-name: Verify creator socials ${{ inputs.verification_id || github.run_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      verification_id:
+        description: Verification request ID
+        required: true
+        type: string
+      payload_json:
+        description: Verification payload JSON
+        required: true
+        type: string
+
+concurrency:
+  group: nichegames-social-verification-${{ inputs.verification_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify-socials:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-audit --no-fund --omit=dev
+      - name: Verify description code and save socials
+        run: node scanner/verify-socials.mjs
+        env:
+          VERIFICATION_ID: ${{ inputs.verification_id }}
+          VERIFICATION_PAYLOAD_JSON: ${{ inputs.payload_json }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
