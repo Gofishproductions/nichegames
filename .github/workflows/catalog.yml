@@ -1,0 +1,80 @@
+name: Nichegames parallel catalog
+run-name: Catalog discovery + resolve ${{ github.run_id }}
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,37 * * * *'
+
+concurrency:
+  group: nichegames-parallel-catalog
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-audit --no-fund --omit=dev
+      - name: Parallel Roblox discovery
+        run: node scanner/discover-worker.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+
+  resolve:
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard: [0,1,2,3,4,5,6,7]
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-audit --no-fund --omit=dev
+      - name: Resolve unloaded games shard ${{ matrix.shard }}
+        run: node scanner/bulk-worker.mjs
+        env:
+          BULK_MODE: resolve
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_COUNT: '8'
+          WORKER_CONCURRENCY: '3'
+          BULK_LIMIT: '12000'
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+
+  recount:
+    needs: resolve
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-audit --no-fund --omit=dev
+      - name: Recount catalog coverage
+        run: node scanner/bulk-worker.mjs
+        env:
+          BULK_MODE: recount
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}

@@ -1,0 +1,50 @@
+name: Nichegames cloud scan
+run-name: Nichegames scan ${{ inputs.scan_id || github.run_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      scan_id:
+        description: Scan ID
+        required: true
+        type: string
+      filters_json:
+        description: Scan filters JSON
+        required: true
+        type: string
+
+concurrency:
+  group: nichegames-user-scan
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  user-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-audit --no-fund --omit=dev
+      - name: Fast incremental filter scan
+        run: node scanner/cloud-scan.mjs
+        env:
+          SCAN_MODE: user
+          SCAN_ID: ${{ inputs.scan_id }}
+          FILTERS_JSON: ${{ inputs.filters_json }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      - name: Mark cancelled or failed scan as stopped
+        if: ${{ cancelled() || failure() }}
+        continue-on-error: true
+        run: node scanner/mark-scan-stopped.mjs
+        env:
+          SCAN_ID: ${{ inputs.scan_id }}
+          SCAN_END_REASON: ${{ job.status }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}

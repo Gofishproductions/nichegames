@@ -1,0 +1,10 @@
+name = "nichegames-scanner"
+main = "src/index.js"
+compatibility_date = "2026-08-29"
+
+[vars]
+GITHUB_OWNER = "Gofishproductions"
+GITHUB_REPO = "nichegames"
+GITHUB_REF = "main"
+GITHUB_WORKFLOW = "scan.yml"
+ALLOWED_ORIGIN = "https://nichegamesfinder.web.app"

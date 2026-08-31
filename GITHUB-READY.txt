@@ -1,0 +1,25 @@
+NICHEGAMES v8.3 — GITHUB READY
+
+Upload the CONTENTS of this package directly to the root of your existing GitHub repo:
+Gofishproductions/nichegames
+
+Expected root layout:
+.github/workflows/*.yml
+scanner/*.mjs
+public/*
+cloudflare/*
+package.json
+firebase.json
+...
+
+The included GitHub Actions workflows are already changed to run from the repository root.
+Do not put these files inside an extra Nichegames-v7-Cloud or Nichegames-v8.3-Cloud folder.
+
+Keep your existing GitHub repository secret:
+FIREBASE_SERVICE_ACCOUNT_JSON
+
+Your existing Cloudflare Worker can continue pointing to:
+GITHUB_OWNER=Gofishproductions
+GITHUB_REPO=nichegames
+GITHUB_REF=main
+GITHUB_WORKFLOW=scan.yml

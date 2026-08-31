@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "nichegames": {
+      ".read": true,
+      ".write": false
+    }
+  }
+}

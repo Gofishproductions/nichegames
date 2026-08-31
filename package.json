@@ -1,0 +1,14 @@
+{
+  "name": "nichegames",
+  "version": "8.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy:site": "npx firebase-tools deploy --only database,hosting",
+    "test": "node tests/date-filter.test.mjs && node tests/cloud-build.test.mjs",
+    "scan:local": "node scanner/cloud-scan.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.4.0"
+  }
+}

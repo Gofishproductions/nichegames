@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0c0f" />
+  <title>Niche Game Finder</title>
+  <meta name="description" content="Explore the game finder to find niche games with tons of filters!" />
+  <meta name="nichegames-build" content="nichegames-v8.1" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Game finder" />
+  <meta property="og:title" content="Niche Game Finder" />
+  <meta property="og:description" content="Explore the game finder to find niche games with tons of filters!" />
+  <meta property="og:url" content="https://nichegamesfinder.web.app/" />
+  <meta property="og:image" content="https://nichegamesfinder.web.app/nichegames-icon.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="80" />
+  <meta property="og:image:height" content="80" />
+  <meta property="og:image:alt" content="Niche Game Finder icon" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Niche Game Finder" />
+  <meta name="twitter:description" content="Explore the game finder to find niche games with tons of filters!" />
+  <meta name="twitter:image" content="https://nichegamesfinder.web.app/nichegames-icon.png" />
+
+  <link rel="canonical" href="https://nichegamesfinder.web.app/" />
+  <link rel="icon" href="/nichegames-icon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/nichegames-icon.png" />
+  <link rel="stylesheet" href="/nichegames-v8-3.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Nichegames home" data-route-link="games">
+        <img class="brand-icon" src="/nichegames-icon.png" alt="" aria-hidden="true" />
+        <span><strong>Nichegames</strong><small>Roblox game discovery</small></span>
+      </a>
+      <nav class="top-nav" aria-label="Primary navigation">
+        <button type="button" class="top-nav-link active" data-route="games">Games</button>
+        <button type="button" class="top-nav-link" data-route="catalog">Catalog</button>
+      </nav>
+    </div>
+    <div id="scanProgress" class="scan-progress hidden" aria-hidden="true"><div id="scanProgressBar" class="scan-progress-bar"></div></div>
+  </header>
+
+  <main class="app-shell">
+    <div id="gamesView">
+    <section class="page-heading">
+      <div>
+        <h1>Find niche games</h1>
+        <p>Set your filters and scan. Nichegames loads every existing Firebase game it already knows immediately, then checks only newly discovered games that fit your filters.</p>
+      </div>
+      <div class="scan-control">
+        <div class="scan-button-row">
+          <button id="scanBtn" class="button primary scan-button" type="button">
+            <span class="refresh-icon" aria-hidden="true">↻</span><span class="button-label">Scan for new games</span>
+          </button>
+          <button id="cancelBtn" class="button secondary cancel-button hidden" type="button">Cancel</button>
+        </div>
+        <span id="scanCaption" class="scan-caption">Uses the filters shown below</span>
+        <span id="scanCounter" class="scan-counter hidden" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section class="lookup-panel" aria-label="Find a Roblox game directly">
+      <div class="lookup-copy">
+        <strong>Find by Roblox URL or ID</strong>
+        <span>Paste a game link, place ID, or universe ID. Nichegames resolves it and adds the game to the catalog.</span>
+      </div>
+      <form id="lookupForm" class="lookup-form">
+        <input id="lookupInput" type="text" inputmode="url" autocomplete="off" placeholder="https://www.roblox.com/games/... or ID" aria-label="Roblox game URL or ID" />
+        <button id="lookupBtn" class="button secondary" type="submit">Find game</button>
+      </form>
+      <div id="lookupStatus" class="lookup-status hidden" aria-live="polite"></div>
+    </section>
+
+    <section class="summary-row" aria-label="Summary">
+      <div class="summary-item"><span>Matches</span><strong id="matchCount">—</strong></div>
+      <div class="summary-item"><span>Live players</span><strong id="totalCcu">—</strong></div>
+      <div class="summary-item"><span>Median CCU</span><strong id="medianCcu">—</strong></div>
+      <div class="summary-item"><span>Catalog games</span><strong id="indexedCount">—</strong></div>
+    </section>
+
+    <section class="workspace">
+      <aside class="filters-panel">
+        <div class="filters-heading"><h2>Scan filters</h2><div class="filter-heading-actions"><button id="allGamesBtn" class="all-games-button" type="button" aria-pressed="false">All games</button><button id="resetBtn" class="plain-button" type="button">Reset</button></div></div>
+
+        <label class="field"><span>Search</span><div class="search-input"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg><input id="q" type="search" placeholder="Game or creator" autocomplete="off" /></div></label>
+
+        <div class="field"><span>Concurrent players</span><div class="two-inputs"><label><small>Min</small><input id="minCcu" type="number" min="0" value="800" inputmode="numeric" /></label><label><small>Max</small><input id="maxCcu" type="number" min="0" value="3000" inputmode="numeric" /></label></div></div>
+
+        <div class="field">
+          <span>Created within</span>
+          <div class="duration-input"><input id="createdWithinValue" type="number" min="1" max="10000000" value="30" inputmode="numeric" aria-label="Created within amount" /><select id="createdWithinUnit" aria-label="Created within unit"><option value="hours">hours</option><option value="days" selected>days</option><option value="weeks">weeks</option><option value="months">months</option><option value="years">years</option><option value="all">all time</option></select></div>
+          <div class="preset-row" aria-label="Creation date presets"><button type="button" data-created-preset="24|hours">24h</button><button type="button" data-created-preset="7|days">7d</button><button type="button" data-created-preset="30|days" class="active">30d</button><button type="button" data-created-preset="90|days">90d</button><button type="button" data-created-preset="1|years">1y</button><button type="button" data-created-preset="1|all">All</button></div>
+        </div>
+
+        <label class="field"><span>Minimum visits</span><input id="minVisits" type="number" min="0" value="0" inputmode="numeric" /></label>
+        <label class="field"><span>Creator</span><select id="creatorType"><option value="all">Any creator</option><option value="Group">Group</option><option value="User">User</option></select></label>
+        <div class="field genre-field"><span>Genre</span><select id="genre"><option value="all">Any genre</option><option value="Action">Action</option><option value="Adventure">Adventure</option><option value="Education">Education</option><option value="Entertainment">Entertainment</option><option value="Obby & Platformer">Obby & Platformer</option><option value="Party & Casual">Party & Casual</option><option value="Puzzle">Puzzle</option><option value="RPG">RPG</option><option value="Roleplay & Avatar Sim">Roleplay & Avatar Sim</option><option value="Shooter">Shooter</option><option value="Shopping">Shopping</option><option value="Simulation">Simulation</option><option value="Social">Social</option><option value="Sports & Racing">Sports & Racing</option><option value="Strategy">Strategy</option><option value="Survival">Survival</option><option value="Utility & Other">Utility & Other</option><option value="Horror">Horror</option></select><small id="genreModeNote" class="genre-mode-note">Choose a genre to enter genre-only mode. Other filters are ignored so the scan focuses on that category.</small></div>
+        <div class="toggle-list"><label class="check-row"><input id="verifiedOnly" type="checkbox" /><span>Verified creators only</span></label><label class="check-row"><input id="hasDiscord" type="checkbox" /><span>Has Discord</span></label><label class="check-row"><input id="hasSocials" type="checkbox" /><span>Has socials</span></label><label class="check-row"><input id="savedOnly" type="checkbox" /><span>Saved games only</span></label></div>
+
+        <div class="scan-explainer">
+          <strong>How Scan works</strong>
+          <p>Existing Firebase games appear immediately. Social filters use cached public game/creator links, including Discord when Roblox exposes one. Choosing a <b>Genre</b> switches to genre-only mode and scans that category broadly. Use <b>All games</b> to bypass every filter and show the entire stored catalog.</p>
+        </div>
+
+        <details class="coverage-note"><summary>Coverage</summary><p>Roblox no longer provides one exhaustive public endpoint for every experience. Nichegames grows coverage over time using Explore, paginated Search, recommendation expansion, and every universe ID it has found before. There is no display-result cap; pagination only changes what is visible on one page.</p></details>
+      </aside>
+
+      <section class="results-panel">
+        <div class="results-toolbar">
+          <div class="results-title"><h2><span id="resultLabel">0</span> results</h2><span id="resultRange">Run a scan to begin</span></div>
+          <div class="result-controls">
+            <label class="compact-control"><span>Sort</span><select id="sort"><option value="playing">CCU</option><option value="created">Created</option><option value="delta">CCU change</option><option value="visits">Visits</option><option value="favorites">Favorites</option><option value="rating">Rating</option><option value="name">Name</option></select></label>
+            <button id="orderBtn" class="square-button" type="button" aria-label="Toggle sort direction" title="Sort descending">↓</button>
+            <label class="compact-control page-size"><span>Show</span><select id="pageSize"><option value="12">12</option><option value="24" selected>24</option><option value="48">48</option><option value="96">96</option></select></label>
+            <div class="view-toggle" aria-label="View"><button type="button" data-view="cards" class="active" aria-label="Card view" title="Card view"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button><button type="button" data-view="table" aria-label="Table view" title="Table view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button></div>
+          </div>
+        </div>
+
+        <div id="loadError" class="error-state hidden"><strong>Scanner unavailable</strong><span id="loadErrorText">The backend did not respond.</span><button id="retryBtn" class="button secondary" type="button">Try again</button></div>
+        <div id="loading" class="loading-state hidden" aria-live="polite"><div class="loader-ring" aria-hidden="true"></div><div><strong id="loadingTitle">Scanning for new games</strong><span id="loadingText">Starting…</span></div></div>
+        <div id="skeletons" class="skeleton-grid hidden" aria-hidden="true"></div>
+        <div id="empty" class="empty-state"><strong>No scan loaded</strong><span>Choose your filters and press Scan for new games.</span></div>
+        <div id="cards" class="game-grid hidden"></div>
+        <div id="tableWrap" class="table-wrap hidden"><table><thead><tr><th>Game</th><th>CCU</th><th>Created</th><th>Visits</th><th>Rating</th><th>Creator</th><th></th></tr></thead><tbody id="tableBody"></tbody></table></div>
+        <nav id="pagination" class="pagination hidden" aria-label="Result pages"></nav>
+      </section>
+    </section>
+    </div>
+
+    <section id="catalogView" class="route-view hidden" aria-labelledby="catalogTitle">
+      <div class="route-heading">
+        <div>
+          <span class="eyebrow">Catalog</span>
+          <h1 id="catalogTitle">Catalog coverage</h1>
+          <p>See how much of Nichegames' discovered Roblox catalog has been fully resolved into searchable game records.</p>
+        </div>
+        <button id="catalogRefreshBtn" class="button secondary" type="button">Refresh stats</button>
+      </div>
+
+      <div class="coverage-grid">
+        <article class="coverage-card"><span>Known IDs</span><strong id="coverageKnown">—</strong><small>Everything Nichegames has discovered</small></article>
+        <article class="coverage-card"><span>Resolved games</span><strong id="coverageResolved">—</strong><small>Games ready to search and display</small></article>
+        <article class="coverage-card"><span>Unresolved IDs</span><strong id="coverageUnresolved">—</strong><small>Known IDs still waiting for metadata</small></article>
+        <article class="coverage-card"><span>Place mappings</span><strong id="coveragePlaces">—</strong><small>Place IDs mapped to universe IDs</small></article>
+      </div>
+
+      <section class="coverage-progress-card">
+        <div class="coverage-progress-head">
+          <div><span>Resolution progress</span><strong id="coverageProgressText">—</strong></div>
+          <div class="coverage-build"><span>Last catalog build</span><strong id="coverageLastBuild">—</strong></div>
+        </div>
+        <div class="coverage-bar" role="progressbar" aria-label="Catalog resolution progress" aria-valuemin="0" aria-valuemax="100"><div id="coverageProgressBar"></div></div>
+        <p id="coverageNote">Loading catalog coverage…</p>
+      </section>
+
+      <section class="catalog-explainer">
+        <h2>What these numbers mean</h2>
+        <div class="catalog-explainer-grid">
+          <div><strong>Known</strong><p>Nichegames has encountered the ID through Roblox discovery, recommendations, catalog repair, or a direct URL lookup.</p></div>
+          <div><strong>Resolved</strong><p>Nichegames has a complete enough game record to display it in search results and creator pages.</p></div>
+          <div><strong>Unresolved</strong><p>The ID still needs to be converted or fetched from Roblox. The hourly catalog builder keeps working through this backlog.</p></div>
+        </div>
+      </section>
+    </section>
+
+    <section id="creatorView" class="route-view hidden" aria-labelledby="creatorTitle">
+      <button id="creatorBackBtn" class="back-button" type="button">← Back to games</button>
+      <div class="creator-hero">
+        <div class="creator-avatar" id="creatorAvatar">?</div>
+        <div class="creator-identity"><span id="creatorTypeLabel">Creator</span><h1 id="creatorTitle">Creator</h1><p id="creatorSubtitle">Games known to Nichegames</p></div>
+      </div>
+      <div class="creator-summary">
+        <div><span>Known games</span><strong id="creatorGameCount">—</strong></div>
+        <div><span>Live players</span><strong id="creatorTotalCcu">—</strong></div>
+        <div><span>Total visits</span><strong id="creatorTotalVisits">—</strong></div>
+      </div>
+      <div class="creator-results-head"><h2>Games</h2><span id="creatorRange"></span></div>
+      <div id="creatorCards" class="game-grid creator-grid"></div>
+      <nav id="creatorPagination" class="pagination hidden" aria-label="Creator game pages"></nav>
+      <div id="creatorEmpty" class="empty-state hidden"><strong>No games found</strong><span>Nichegames does not have any games for this creator in the catalog yet.</span></div>
+    </section>
+
+    <footer class="app-footer"><span>Nichegames</span><span>Persistent catalog · instant cached results · incremental scans</span></footer>
+  </main>
+
+  <div id="detailsModal" class="modal" aria-hidden="true"><button id="modalBackdrop" class="modal-backdrop" aria-label="Close details"></button><section class="modal-panel" role="dialog" aria-modal="true" aria-label="Game details"><button id="modalClose" class="modal-close" type="button" aria-label="Close details">×</button><div id="modalContent"></div></section></div>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/runtime-config.js"></script>
+  <script type="module" src="/nichegames-v8-3.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+name: Nichegames parallel CCU refresh
+run-name: CCU refresh ${{ github.run_id }}
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '2,32 * * * *'
+
+concurrency:
+  group: nichegames-parallel-refresh
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard: [0,1,2,3,4,5,6,7]
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-audit --no-fund --omit=dev
+      - name: Refresh live game stats shard ${{ matrix.shard }}
+        run: node scanner/bulk-worker.mjs
+        env:
+          BULK_MODE: refresh
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_COUNT: '8'
+          WORKER_CONCURRENCY: '3'
+          BULK_LIMIT: '12000'
+          REFRESH_STALE_MS: '1200000'
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}

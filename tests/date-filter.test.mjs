@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { isWithinCreatedWindow } from '../public/filter-utils.js';
+const now = Date.UTC(2026,7,29,12,0,0);
+const games = [5,20,45,80,200,900].map((days) => ({ created:new Date(now-days*86400000).toISOString() }));
+const count = (value,unit) => games.filter((g) => isWithinCreatedWindow(g.created,value,unit,now)).length;
+assert.ok(count(30,'days') <= count(60,'days'));
+assert.ok(count(60,'days') <= count(90,'days'));
+assert.equal(count(1,'all'), games.length);
+assert.equal(isWithinCreatedWindow(new Date(now-5_000*86400000).toISOString(),9_000_000,'days',now), true);
+console.log('Created-within tests passed: 30d <= 60d <= 90d, All time works, multi-million-day ranges are not capped at 730d.');
